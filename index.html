@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>AltrionStudios</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0d1015;color:#e6e8ec;font-family:system-ui,sans-serif;text-align:center;padding:24px}
+  .box{max-width:420px}
+  h1{color:#f39a3f;font-size:24px;margin:0 0 10px}
+  p{color:#9ca4af;line-height:1.5}
+  a.btn{display:inline-block;margin-top:14px;padding:12px 20px;border-radius:12px;background:#f39a3f;color:#111;font-weight:700;text-decoration:none}
+  .msg{min-height:1.5em}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>AltrionStudios</h1>
+  <p class="msg" id="msg">Procurando o endereço atual do site…</p>
+  <a class="btn" id="manual" href="#" hidden>Abrir o site</a>
+</div>
+<script>
+(function(){
+  var ARQUIVO='tunnel.json';
+  var msg=document.getElementById('msg');
+  var manual=document.getElementById('manual');
+
+  function falhou(texto){
+    msg.textContent=texto;
+    setTimeout(carregar,15000); /* tenta de novo sozinho a cada 15 s */
+  }
+
+  function carregar(){
+    msg.textContent='Procurando o endereço atual do site…';
+    fetch(ARQUIVO+'?v='+Date.now(),{cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
+      .then(function(d){
+        var url=(d&&d.url)||'';
+        if(!/^https:\/\/[^\s]+$/.test(url)) throw new Error('sem url');
+        manual.href=url; manual.hidden=false;
+        msg.textContent='Abrindo o site…';
+        location.replace(url);
+      })
+      .catch(function(){
+        falhou('O site não está no ar agora. Tentando de novo em instantes.');
+      });
+  }
+  carregar();
+})();
+</script>
+</body>
+</html>
