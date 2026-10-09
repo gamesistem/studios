@@ -23,7 +23,7 @@
 <script>
 (function(){
   /* Lê o arquivo direto do repositório (raw), que atualiza na hora, sem esperar o build do GitHub Pages. */
-  var REPO='gamesistem/studios', BRANCH='principal', ARQUIVO='tunnel.json';
+  var REPO='gamesistem/studios', BRANCH='main', ARQUIVO='tunnel.json';
   var ORIGEM='https://raw.githubusercontent.com/'+REPO+'/'+BRANCH+'/'+ARQUIVO;
   var msg=document.getElementById('msg');
   var manual=document.getElementById('manual');
@@ -33,10 +33,17 @@
     setTimeout(carregar,15000); /* tenta de novo sozinho a cada 15 s */
   }
 
+  /* Tenta o arquivo do repositório (raw); se não der, usa a cópia publicada no próprio Pages. */
+  var FONTES=[ORIGEM+'?v='+Date.now(), ARQUIVO+'?v='+Date.now()];
+  function lerFonte(i){
+    if(i>=FONTES.length) return Promise.reject(new Error('sem fonte'));
+    return fetch(FONTES[i],{cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
+      .catch(function(){ return lerFonte(i+1); });
+  }
   function carregar(){
     msg.textContent='Procurando o endereço atual do site…';
-    fetch(ORIGEM+'?v='+Date.now(),{cache:'no-store'})
-      .then(function(r){ if(!r.ok) throw new Error('http'); return r.json(); })
+    lerFonte(0)
       .then(function(d){
         var url=(d&&d.url)||'';
         if(!/^https:\/\/[^\s]+$/.test(url)) throw new Error('sem url');
